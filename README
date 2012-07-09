@@ -1,0 +1,56 @@
+translatr version 0.1.0
+
+by sephiroth99
+
+translatr is used to extract subtitles and localisation data from the Tomb
+Raider games made by Crystal Dynamics (TRL, TRA, TRU, LCGoL). All that text is
+saved to a single file named "translations.xml", which can the be edited.
+Currently, only English language text is extracted. There are two sources for
+the text: subtitles come from ".mul" files, and other localisation text (eg.
+menus) come from a file named "locals.bin".
+
+translatr is also used to patch back a modified "translations.xml". It will
+create patched ".mul" and locals.bin files, which can then be used into the
+game. The method to do this is explained below.
+
+translatr can then be used to translate the game into an originally
+"unsupported" language. The spoken language will still be English though. It
+can also be used to create funny cutscenes by changing the subtitles to stupid
+things ;)
+
+
+How to use:
+*Extract mode: translatr extract bigfile_path [patch_path]
+
+Arguments:
+ bigfile_path: path to folder where bigfile.000 was extracted
+ patch_path  : (optional) path to folder where patch.000 was extracted
+
+To unpack files from the game, use Gibbed.TombRaider.Unpack from Rick (see
+below).
+If the game has a patch (like TRU and LCGoL), it is recommended to install and
+unpack it, as it will make patching back the modifications easier.
+
+*Patch mode  : translatr apply translations_path
+ translations_path: path to modified translations.xml file
+
+This will create the new files in a folder named "newpatch". If a patch.000
+archive was specified during extract mode, the patch will be inserted too. You
+can then pack the patch archive back, replace it in the game directory and
+enjoy!
+
+Unfortunately, this will not work for TRL and TRA as they do not have a
+separate patch archive. You will have to copy the content of the "newpatch"
+folder into the folder where the bigfile.000 was extracted. Then, you have to
+pack the "bigfile.000" archive. It is much longer than just packing the patch
+files, but it is the only way.
+
+To pack a folder into an archive, use Gibbed.DeuxEx3.Pack from Rick (see
+below). You will have to modify it to support Tomb Raider though.
+
+---
+For the tool used to unpack and pack archives (bigfiles) see Rick's SVN at:
+http://svn.gib.me/public/deusex3/
+Rick's Website: http://blog.gib.me/
+
+This code is released to the public domain, do what you want with it!
