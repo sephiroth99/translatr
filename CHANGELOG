@@ -1,0 +1,6 @@
+* Version 0.1.1 (2012-07-26)
+	- Changed subtitle search algorithm, now with less crashing!
+	- Fixed bug where subtitles on separate lines were not reconstructed properly.
+
+* Version 0.1.0
+	- Initial release

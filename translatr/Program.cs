@@ -17,7 +17,7 @@ namespace translatr
             String  transPath   = String.Empty;
 
             Console.WriteLine("");
-            Console.WriteLine("translatr 0.1.0");
+            Console.WriteLine("translatr 0.1.1");
             Console.WriteLine("by sephiroth99");
             Console.WriteLine("");
 

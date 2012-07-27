@@ -111,17 +111,39 @@ namespace translatr
                 else // mul file
                 {
                     CineFile cf = new CineFile(basepath, name);
+                    SubtitleEntry se;
+
+                    // Get first entry
+                    entryNodes.MoveNext();
+                    se = new SubtitleEntry();
+                    se.lang = getLangIDfromString(entryNodes.Current.GetAttribute("lang", ""));
+                    se.blockNumber = int.Parse(entryNodes.Current.GetAttribute("block", ""));
+                    se.text = entryNodes.Current.Value;
 
                     while (entryNodes.MoveNext() == true)
                     {
-                        SubtitleEntry se = new SubtitleEntry();
-                        se.lang = getLangIDfromString(entryNodes.Current.GetAttribute("lang", ""));
-                        se.blockNumber = int.Parse(entryNodes.Current.GetAttribute("block", ""));
-                        se.text = entryNodes.Current.Value;
+                        // Check if same block
+                        if (se.blockNumber == int.Parse(entryNodes.Current.GetAttribute("block", "")))
+                        {
+                            se.text += ("\n" + entryNodes.Current.Value);
+                        }
+                        else
+                        {
+                            // Save previous entry
+                            cf.add(se);
 
-                        cf.add(se);
+                            // Save new current entry
+                            se = new SubtitleEntry();
+                            se.lang = getLangIDfromString(entryNodes.Current.GetAttribute("lang", ""));
+                            se.blockNumber = int.Parse(entryNodes.Current.GetAttribute("block", ""));
+                            se.text = entryNodes.Current.Value;
+                        }
                     }
 
+                    // Add last sub entry
+                    cf.add(se);
+
+                    // Add cinefile to list
                     cfl.Add(cf);
                 }
             }

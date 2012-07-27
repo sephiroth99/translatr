@@ -108,28 +108,33 @@ namespace translatr
                 dataStream.Position += 8;
 
                 if (type == 1) // Cine block
-                {
+                {                    
                     if (blockSize == 0x10)
+                    {
+                        block++;
+                        dataStream.Position += 0x10;
                         continue;
+                    }
 
                     // Copy cine block to array
                     var array = br.ReadBytes((int)blockSize);
 
                     parseBlock(array, block);
-
                     block++;
                 }
-                else // Skip block
+                else if (type == 0) // Skip audio block
                 {
                     dataStream.Position += blockSize;
+                }
+                else
+                {
+                    throw new Exception("Unknown mul block type");
                 }
             }
         }
 
         private void parseBlock(byte[] array, int block)
         {
-            bool again = true;
-
             // Skip first block if its a big one
             // It's most likely a cinstream so no subs here
             if (block == 0)
@@ -150,35 +155,33 @@ namespace translatr
             if (array[index] != 0x0d)
                 return; // No subs here
 
-            while (again)
+            // Search for start of subtitle section
+            int endidx = index;
+            // 4byte align
+            index -= index % 4;
+
+            while (index > 0)
             {
-                int endpos = index;
-                index--;
-
-                // Find start of subtitle
-                while (index >= 0 && array[index] != 0x0d)
+                index -= 4;
+                int len = ((array[index]) + (array[index + 1] << 8) + (array[index + 2] << 16) + (array[index + 3] << 24));
+                if ((endidx - index - 3) == len)
                 {
-                    index--;
+                    parseSubsBlock(Encoding.UTF8.GetString(array, index + 4, endidx - index - 4), block);
+                    break;
                 }
+            }
+        }
 
-                int startpos = index + 1;
-                index--;
-
-                // Find start of subtitle lang
-                while ((index >= 0) && (array[index] != 0x0d) && (array[index] != 0x00))
-                {
-                    index--;
-                }
-
-                if (array[index] == 0x00)
-                    again = false;
-
-                int langpos = index + 1;
-
+        void parseSubsBlock(String s, int block)
+        {
+            var ss = s.Split('\r');
+            
+            for (int i = 0; i < ss.Length; i += 2)
+            {
                 SubtitleEntry sub = new SubtitleEntry();
                 sub.blockNumber = block;
-                sub.lang = (LangID)(int.Parse(Encoding.UTF8.GetString(array, langpos, startpos - langpos - 1)));
-                sub.text = Encoding.UTF8.GetString(array, startpos, endpos - startpos);
+                sub.lang = (LangID)(int.Parse(ss[i]));
+                sub.text = ss[i + 1];
 
                 this.subEntries.Add(sub);
             }
