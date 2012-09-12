@@ -15,9 +15,11 @@ namespace translatr
             String  bigfilePath = String.Empty;
             String  patchPath   = String.Empty;
             String  transPath   = String.Empty;
+            String  ovrBasePath = String.Empty;
+            String ovrPatchPath = String.Empty;
 
             Console.WriteLine("");
-            Console.WriteLine("translatr 0.1.1");
+            Console.WriteLine("translatr 0.1.2");
             Console.WriteLine("by sephiroth99");
             Console.WriteLine("");
 
@@ -45,6 +47,11 @@ namespace translatr
                 {
                     extractMode = false;
                     transPath = args[1];
+
+                    if (args.Length > 2)
+                        ovrBasePath = args[2];
+                    if (args.Length > 3)
+                        ovrPatchPath = args[3];
                 }
                 else if (args[0] != "extract")
                 {
@@ -62,7 +69,7 @@ namespace translatr
             if (extractMode)
                 doExtract(bigfilePath, patchPath);
             else
-                doApply(transPath);
+                doApply(transPath, ovrBasePath, ovrPatchPath);
         }
 
         private static void doExtract(String bigfilePath, String patchPath)
@@ -142,22 +149,51 @@ namespace translatr
             System.Console.WriteLine("Translatable text saved to file \"translations.xml\"");
         }
 
-        private static void doApply(String transFilePath)
+        private static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath)
         {
             LocalsFile localsFile = null;
             List<CineFile> cineFileList = null;
             
-            String patchPathBase;
-            String bigPathBase;
+            String patchPathBase, origPatchPathBase;
+            String bigPathBase, origBigPathBase;
             String outPath = "newpatch";
             String dest;
 
             Directory.CreateDirectory(outPath);
+            
+            origBigPathBase = String.Empty;
+            origPatchPathBase = String.Empty;
 
             // Get info from translations.xml file
             System.Console.Write("Loading translation data...");
             TransFile.Open(transFilePath, out localsFile, out cineFileList, out bigPathBase, out patchPathBase);
             System.Console.WriteLine("done!");
+
+            if (ovrFileBasePath != String.Empty)
+            {
+                origBigPathBase = bigPathBase;
+                bigPathBase = ovrFileBasePath;
+
+                if (patchPathBase != String.Empty)
+                {
+                    if (ovrFilePatchPath == String.Empty)
+                    {
+                        System.Console.WriteLine("Error: A patch was specified in the translation file\nPatch override path must be provided!");
+                        System.Environment.Exit(-1);
+                    }
+                    else
+                    {
+                        origPatchPathBase = patchPathBase;
+                        patchPathBase = ovrFilePatchPath;
+                    }
+                }
+                System.Console.WriteLine("Using different source paths");
+                System.Console.WriteLine("Base: {0}", bigPathBase);
+                if (patchPathBase != String.Empty)
+                    System.Console.WriteLine("Patch: {0}", patchPathBase);
+                else
+                    System.Console.WriteLine("");
+            }
 
             // Copy existing patch into output dir
             System.Console.Write("Copying existing patch data...");
@@ -228,7 +264,6 @@ namespace translatr
                     // Add node in file
                     xdoc.DocumentElement.AppendChild(n);
                 }
-                    
             }
 
             // mul files
@@ -238,6 +273,17 @@ namespace translatr
                 {
                     dest = outPath + cinefile.name;
                     Directory.CreateDirectory(Path.GetDirectoryName(dest));
+
+                    if (cinefile.sourcePath == origBigPathBase)
+                        cinefile.sourcePath = bigPathBase;
+                    else if (cinefile.sourcePath == origPatchPathBase)
+                        cinefile.sourcePath = patchPathBase;
+                    else
+                    {
+                        System.Console.WriteLine("Unknown source path of mul file! exiting");
+                        System.Environment.Exit(-2);
+                    }
+                    
                     cinefile.rebuild(dest);
                     System.Console.WriteLine(dest);
 
