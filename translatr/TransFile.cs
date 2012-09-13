@@ -12,7 +12,7 @@ namespace translatr
         private XmlWriter xml;
         private bool isFileEntryOpen;
 
-        public TransFile(String bigpath, String patchpath)
+        public TransFile(String bigpath, String patchpath, bool isBE)
         {
             var xmlsettings = new XmlWriterSettings();
             xmlsettings.Indent = true;
@@ -23,6 +23,7 @@ namespace translatr
             xml.WriteStartElement("root");
             xml.WriteAttributeString("bigpath", bigpath);
             xml.WriteAttributeString("patchpath", patchpath);
+            xml.WriteAttributeString("bigendian", isBE ? "true" : "false");
 
             isFileEntryOpen = false;
         }
@@ -31,16 +32,16 @@ namespace translatr
         {
             lf = null;
             cfl = new List<CineFile>();
-
-            var input = File.Open(inputPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            bool isBigEndian;
             
-            var doc = new XPathDocument(input);
+            var doc = new XPathDocument(inputPath, XmlSpace.Preserve);
             var nav = doc.CreateNavigator();
 
             var root = nav.SelectSingleNode("/root");
             
             bigPath = root.GetAttribute("bigpath", "");
             patchPath = root.GetAttribute("patchpath", "");
+            isBigEndian = bool.Parse(root.GetAttribute("bigendian", ""));
 
             var fileNodes = root.Select("file");
 
@@ -53,8 +54,8 @@ namespace translatr
 
                 if(name.EndsWith("locals.bin"))
                 {
-                    lf = new LocalsFile(basepath, name);
-                    uint index;
+                    lf = new LocalsFile(basepath, name, isBigEndian);
+                    uint index, offset;
                     String entryText = "";
                     uint prevIndex = 0;
                     uint lastOffset = 0;
@@ -68,10 +69,11 @@ namespace translatr
                     {
                         // Get index of entry
                         index = uint.Parse(entryNodes.Current.GetAttribute("lang", ""));
+                        offset = uint.Parse(entryNodes.Current.GetAttribute("block", ""));
 
                         if(prevIndex == index)
                         {
-                            // this entry is the same as the last one, save the text with CRLF
+                            // this entry is the same as the last one, save the text with LF
                             entryText = entryText + "\n" + entryNodes.Current.Value;
                             continue;
                         }
@@ -81,12 +83,15 @@ namespace translatr
                         e.index = prevIndex;
                         e.offset = lastOffset;
                         lastOffset += (uint)Encoding.UTF8.GetByteCount(entryText) + 1;
+                        if (lastOffset != offset)
+                            throw new Exception("Error loading locals.bin");
                         e.text = entryText;
 
                         lf.entries.Add(e);
                         
                         // Save text of current entry
                         entryText = entryNodes.Current.Value;
+                        var tata = entryNodes.Current.Value.ToCharArray();
                         prevIndex++;
 
                         // If next entry is not sequential, we need to add empty entries

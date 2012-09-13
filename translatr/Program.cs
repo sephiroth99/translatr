@@ -12,6 +12,7 @@ namespace translatr
         static void Main(string[] args)
         {
             bool    extractMode = true;
+            bool    isBigEndian = false;
             String  bigfilePath = String.Empty;
             String  patchPath   = String.Empty;
             String  transPath   = String.Empty;
@@ -26,18 +27,21 @@ namespace translatr
             if (args.Length <= 0 || args[0] == "-h" || args[0] == "-?" || args[0] == "--help")
             {
                 Console.WriteLine("Extract Usage:");
-                Console.WriteLine("translatr extract bigfile_path [patch_path]");
+                Console.WriteLine("translatr extract bigfile_path [be] [patch_path]");
                 Console.WriteLine("");
                 Console.WriteLine("Arguments:");
                 Console.WriteLine(" bigfile_path: path to folder where bigfile.000 was extracted");
-                Console.WriteLine(" patch_path  : (optional) path to folder where patch.000 was extracted");
+                Console.WriteLine(" be          : write \"be\" to enable big endian extraction");
+                Console.WriteLine(" patch_path  : (opt) path to folder where patch.000 was extracted");
                 Console.WriteLine("");
                 Console.WriteLine("");
                 Console.WriteLine("Apply Usage:");
-                Console.WriteLine("translatr apply translations_path");
+                Console.WriteLine("translatr apply translations_path [override_base_path [override_patch_path]]");
                 Console.WriteLine("");
                 Console.WriteLine("Arguments:");
                 Console.WriteLine(" translations_path: path to modified translations.xml file");
+                Console.WriteLine(" override_base_path: (opt) path to extracted base files. Overrides path in xml file.");
+                Console.WriteLine(" override_patch_path: (opt) path to extracted patch files. Overrides path in xml file.");
                 Console.WriteLine("");
                 System.Environment.Exit(0);
             }
@@ -62,19 +66,26 @@ namespace translatr
                 {
                     bigfilePath = args[1];
                     if (args.Length > 2)
-                        patchPath = args[2];
+                        if (args[2] == "be")
+                        {
+                            isBigEndian = true;
+                            if (args.Length > 3)
+                                patchPath = args[3];
+                        }
+                        else
+                            patchPath = args[2];
                 }
             }
 
             if (extractMode)
-                doExtract(bigfilePath, patchPath);
+                doExtract(bigfilePath, patchPath, isBigEndian);
             else
-                doApply(transPath, ovrBasePath, ovrPatchPath);
+                doApply(transPath, ovrBasePath, ovrPatchPath, isBigEndian);
         }
 
-        private static void doExtract(String bigfilePath, String patchPath)
+        private static void doExtract(String bigfilePath, String patchPath, bool isBigEndian)
         {
-            TransFile tf = new TransFile(bigfilePath, patchPath);
+            TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian);
 
             var files = getFilelist(bigfilePath, patchPath);
 
@@ -87,7 +98,7 @@ namespace translatr
 
                 if (file.EndsWith("locals.bin"))
                 {
-                    LocalsFile lf = new LocalsFile();
+                    LocalsFile lf = new LocalsFile(isBigEndian);
                     lf.parse(file);
 
                     string basep;
@@ -149,7 +160,7 @@ namespace translatr
             System.Console.WriteLine("Translatable text saved to file \"translations.xml\"");
         }
 
-        private static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath)
+        private static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath, bool isBigEndian)
         {
             LocalsFile localsFile = null;
             List<CineFile> cineFileList = null;
