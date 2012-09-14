@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Text;
 
@@ -30,6 +31,27 @@ namespace translatr
         public string text;
     }
 
+    public static class EndianHelper
+    {
+        public static uint readuint(this Stream s, bool be)
+        {
+            byte[] b = new byte[4];
+            s.Read(b, 0, 4);
+
+            uint u = BitConverter.ToUInt32(b, 0);
+
+            return be ? swap(u) : u;
+        }
+        
+        public static uint swap(uint u)
+        {
+            return (((u & 0x00FF) << 24) |
+                    ((u & 0xFF00) << 8) |
+                    ((u >> 8) & 0xFF00) |
+                    ((u >> 24) & 0xFF));
+        }
+    }
+
     public class CineFile
     {
         private List<SubtitleEntry> subEntries;
@@ -37,18 +59,20 @@ namespace translatr
         public String sourcePath;
         public String name;
         bool isParsed;
+        bool isBE;
 
-        public CineFile(String srcpath, String name)
+        public CineFile(String srcpath, String name, bool isBE)
         {
             this.subEntries = new List<SubtitleEntry>();
             this.dataStream = null;
             this.sourcePath = srcpath;
             this.name = name;
             this.isParsed = false;
+            this.isBE = isBE;
         }
 
-        public CineFile()
-            : this("", "")
+        public CineFile(bool isBE)
+            : this("", "", isBE)
         {
         }
 
@@ -103,8 +127,8 @@ namespace translatr
             while (dataStream.Position < dataStream.Length)
             {
                 // Read block header
-                type = br.ReadUInt32();
-                blockSize = br.ReadUInt32();
+                type = dataStream.readuint(isBE);
+                blockSize = dataStream.readuint(isBE);
                 dataStream.Position += 8;
 
                 if (type == 1) // Cine block
@@ -163,7 +187,10 @@ namespace translatr
             while (index > 0)
             {
                 index -= 4;
-                int len = ((array[index]) + (array[index + 1] << 8) + (array[index + 2] << 16) + (array[index + 3] << 24));
+                uint len = BitConverter.ToUInt32(array, index);
+                if (isBE)
+                    len = EndianHelper.swap(len);
+
                 if ((endidx - index - 3) == len)
                 {
                     parseSubsBlock(Encoding.UTF8.GetString(array, index + 4, endidx - index - 4), block);
@@ -194,8 +221,9 @@ namespace translatr
             // Must have original file path to rebuild!
             if (this.sourcePath == "")
                 throw new NullReferenceException("Source path is empty");
-
-            BinaryReader br = new BinaryReader(new FileStream(this.sourcePath + this.name, FileMode.Open));
+            
+            var s = new FileStream(this.sourcePath + this.name, FileMode.Open);
+            BinaryReader br = new BinaryReader(s);
 
             byte[] buf;
 
@@ -209,8 +237,8 @@ namespace translatr
             UInt32 blockno = 0;
             while (br.BaseStream.Position < br.BaseStream.Length)
             {
-                type = br.ReadUInt32();
-                len = br.ReadUInt32();
+                type = s.readuint(isBE);
+                len = s.readuint(isBE);
                 br.BaseStream.Position -= 8;
 
                 if (type == 0)

@@ -31,7 +31,7 @@ namespace translatr
                 Console.WriteLine("");
                 Console.WriteLine("Arguments:");
                 Console.WriteLine(" bigfile_path: path to folder where bigfile.000 was extracted");
-                Console.WriteLine(" be          : write \"be\" to enable big endian extraction");
+                Console.WriteLine(" be          : (opt) write \"be\" to enable big endian extraction");
                 Console.WriteLine(" patch_path  : (opt) path to folder where patch.000 was extracted");
                 Console.WriteLine("");
                 Console.WriteLine("");
@@ -124,7 +124,7 @@ namespace translatr
                 }
                 else
                 {
-                    CineFile cf = new CineFile();
+                    CineFile cf = new CineFile(isBigEndian);
                     cf.parse(file);
 
                     if (cf.isSubs())

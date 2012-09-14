@@ -115,7 +115,7 @@ namespace translatr
                 }
                 else // mul file
                 {
-                    CineFile cf = new CineFile(basepath, name);
+                    CineFile cf = new CineFile(basepath, name, isBigEndian);
                     SubtitleEntry se;
 
                     // Get first entry
