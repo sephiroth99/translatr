@@ -31,27 +31,6 @@ namespace translatr
         public string text;
     }
 
-    public static class EndianHelper
-    {
-        public static uint readuint(this Stream s, bool be)
-        {
-            byte[] b = new byte[4];
-            s.Read(b, 0, 4);
-
-            uint u = BitConverter.ToUInt32(b, 0);
-
-            return be ? swap(u) : u;
-        }
-        
-        public static uint swap(uint u)
-        {
-            return (((u & 0x00FF) << 24) |
-                    ((u & 0xFF00) << 8) |
-                    ((u >> 8) & 0xFF00) |
-                    ((u >> 24) & 0xFF));
-        }
-    }
-
     public class CineFile
     {
         private List<SubtitleEntry> subEntries;
@@ -181,10 +160,18 @@ namespace translatr
 
             // Search for start of subtitle section
             int endidx = index;
-            // 4byte align
-            index -= index % 4;
 
-            while (index > 0)
+            int startidx = findSubsStartIndex(array, endidx);
+
+            parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), block);          
+        }
+
+        int findSubsStartIndex(byte[] array, int endidx)
+        {
+            int index = endidx;
+            index -= (index % 3);
+
+            while (index > 3)
             {
                 index -= 4;
                 uint len = BitConverter.ToUInt32(array, index);
@@ -192,11 +179,12 @@ namespace translatr
                     len = EndianHelper.swap(len);
 
                 if ((endidx - index - 3) == len)
-                {
-                    parseSubsBlock(Encoding.UTF8.GetString(array, index + 4, endidx - index - 4), block);
+                {                    
                     break;
                 }
             }
+
+            return index;
         }
 
         void parseSubsBlock(String s, int block)
@@ -287,12 +275,17 @@ namespace translatr
             bool again = true;
             byte[] output = null;
             int zerocnt = 0;
+
             // Remove end zeros
             while (index >= 0 && array[index] == 0x00)
             {
                 index--;
                 zerocnt++;
             }
+
+            int endidx = index;
+            int startidx = findSubsStartIndex(array, endidx);
+
             BinaryWriter bw = null;
             int sizeDelta = 0;
             while (again)

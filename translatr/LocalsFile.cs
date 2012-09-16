@@ -42,9 +42,7 @@ namespace translatr
             BinaryReader r = new BinaryReader(s);
 
             s.Position = 4;
-            uint count = r.ReadUInt32();            
-            if (isBE)
-                count = swap(count);
+            uint count = s.readuint(isBE);            
             count -= 1;
 
             for (uint i = 0; i < count; i++)
@@ -54,9 +52,7 @@ namespace translatr
                 s.Position = (i + 3)*4;
 
                 e.index = i;
-                e.offset = r.ReadUInt32();
-                if (isBE)
-                    e.offset = swap(e.offset);
+                e.offset = s.readuint(isBE);
 
                 s.Position = e.offset;
                 
@@ -85,12 +81,12 @@ namespace translatr
 
             ms.Position = 4;
             uint var = (uint)entries.Count + 1;
-            w.Write(isBE ? swap(var) : var);
+            w.Write(isBE ? var.swap() : var);
             ms.Position += 4;
 
             foreach (LocalsEntry e in entries)
             {
-                w.Write(isBE ? swap(e.offset) : e.offset);
+                w.Write(isBE ? e.offset.swap() : e.offset);
             }
 
             foreach (LocalsEntry e in entries)
@@ -106,14 +102,6 @@ namespace translatr
             FileStream file = new FileStream(path, FileMode.Create);
             file.Write(ms.ToArray(), 0, (int)ms.Length);
             file.Close();
-        }
-
-        public uint swap(uint u)
-        {
-            return (((u & 0x00FF) << 24) |
-                    ((u & 0xFF00) << 8) |
-                    ((u >> 8) & 0xFF00) |
-                    ((u >> 24) & 0xFF));
         }
     }
 }
