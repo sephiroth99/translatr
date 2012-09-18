@@ -289,11 +289,11 @@ namespace translatr
                         cinefile.sourcePath = bigPathBase;
                     else if (cinefile.sourcePath == origPatchPathBase)
                         cinefile.sourcePath = patchPathBase;
-                    else
+                    /*else
                     {
                         System.Console.WriteLine("Unknown source path of mul file! exiting");
                         System.Environment.Exit(-2);
-                    }
+                    }*/
                     
                     cinefile.rebuild(dest);
                     System.Console.WriteLine(dest);

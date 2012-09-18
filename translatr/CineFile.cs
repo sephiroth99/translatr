@@ -136,6 +136,62 @@ namespace translatr
             }
         }
 
+        public void rebuild(String path)
+        {
+            FileStream patched = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+
+            // Must have original file path to rebuild!
+            if (this.sourcePath == "")
+                throw new NullReferenceException("Source path is empty");
+
+            var s = new FileStream(this.sourcePath + this.name, FileMode.Open);
+            BinaryReader br = new BinaryReader(s);
+
+            byte[] buf;
+
+            // Copy header
+            buf = br.ReadBytes(0x800);
+            patched.Write(buf, 0, buf.Length);
+
+            // Do blocks
+            UInt32 type;
+            UInt32 len;
+            UInt32 blockno = 0;
+            while (br.BaseStream.Position < br.BaseStream.Length)
+            {
+                type = s.readuint(isBE);
+                len = s.readuint(isBE);
+                br.BaseStream.Position -= 8;
+
+                if (type == 0)
+                {
+                    // Copy audio block as is
+                    buf = br.ReadBytes((int)len + 16);
+                    patched.Write(buf, 0, buf.Length);
+                }
+                else
+                {
+                    int changedEntryNo = findChangedEntry(blockno);
+                    if (changedEntryNo >= 0)
+                    {
+                        // Change sub
+                        buf = br.ReadBytes((int)len + 16);
+                        buf = blockChangeSub(buf, subEntries[changedEntryNo], (int)blockno);
+                        patched.Write(buf, 0, buf.Length);
+                    }
+                    else
+                    {
+                        // Copy cine block as is
+                        buf = br.ReadBytes((int)len + 16);
+                        patched.Write(buf, 0, buf.Length);
+                    }
+                    blockno++;
+                }
+            }
+
+            patched.Close();
+        }
+
         private void parseBlock(byte[] array, int block)
         {
             // Skip first block if its a big one
@@ -163,20 +219,23 @@ namespace translatr
 
             int startidx = findSubsStartIndex(array, endidx);
 
-            parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), block);          
+            if (startidx == 0)
+                return; //no subs found
+            else
+                subEntries = parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), block);
         }
 
         int findSubsStartIndex(byte[] array, int endidx)
         {
             int index = endidx;
-            index -= (index % 3);
+            index -= (index % 4);
 
             while (index > 3)
             {
                 index -= 4;
                 uint len = BitConverter.ToUInt32(array, index);
                 if (isBE)
-                    len = EndianHelper.swap(len);
+                    len = len.swap();
 
                 if ((endidx - index - 3) == len)
                 {                    
@@ -187,8 +246,10 @@ namespace translatr
             return index;
         }
 
-        void parseSubsBlock(String s, int block)
+        static List<SubtitleEntry> parseSubsBlock(String s, int block)
         {
+            List<SubtitleEntry> entries = new List<SubtitleEntry>();
+
             var ss = s.Split('\r');
             
             for (int i = 0; i < ss.Length; i += 2)
@@ -198,64 +259,34 @@ namespace translatr
                 sub.lang = (LangID)(int.Parse(ss[i]));
                 sub.text = ss[i + 1];
 
-                this.subEntries.Add(sub);
+                entries.Add(sub);
             }
+
+            return entries;
         }
 
-        public void rebuild(String path)
+        byte[] rebuildSubsBlock(List<SubtitleEntry> entries, int blockNumber)
         {
-            FileStream patched = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            MemoryStream mem = new MemoryStream();
+            BinaryWriter br = new BinaryWriter(mem);
 
-            // Must have original file path to rebuild!
-            if (this.sourcePath == "")
-                throw new NullReferenceException("Source path is empty");
-            
-            var s = new FileStream(this.sourcePath + this.name, FileMode.Open);
-            BinaryReader br = new BinaryReader(s);
+            mem.Position += 4;
 
-            byte[] buf;
-
-            // Copy header
-            buf = br.ReadBytes(0x800);
-            patched.Write(buf, 0, buf.Length);
-            
-            // Do blocks
-            UInt32 type;
-            UInt32 len;
-            UInt32 blockno = 0;
-            while (br.BaseStream.Position < br.BaseStream.Length)
+            foreach (SubtitleEntry e in entries)
             {
-                type = s.readuint(isBE);
-                len = s.readuint(isBE);
-                br.BaseStream.Position -= 8;
+                if (e.blockNumber != blockNumber)
+                    continue;
 
-                if (type == 0)
-                {
-                    // Copy audio block as is
-                    buf = br.ReadBytes((int)len + 16);
-                    patched.Write(buf, 0, buf.Length);
-                }
-                else
-                {
-                    int changedEntryNo = findChangedEntry(blockno);
-                    if (changedEntryNo >= 0)
-                    {
-                        // Change sub
-                        buf = br.ReadBytes((int)len + 16);
-                        buf = blockChangeSub(buf, subEntries[changedEntryNo]);
-                        patched.Write(buf, 0, buf.Length);
-                    }
-                    else
-                    {
-                        // Copy cine block as is
-                        buf = br.ReadBytes((int)len + 16);
-                        patched.Write(buf, 0, buf.Length);
-                    }
-                    blockno++;
-                }
+                br.Write((byte)((byte)e.lang + 0x30));
+                br.Write('\r');
+                br.Write(Encoding.UTF8.GetBytes(e.text));
+                br.Write('\r');
             }
 
-            patched.Close();
+            mem.Position = 0;
+            mem.writeuint((uint)(mem.Length - 4), isBE);
+
+            return mem.ToArray();
         }
 
         private int findChangedEntry(uint blockno)
@@ -269,88 +300,62 @@ namespace translatr
             return -1;
         }
 
-        private byte[] blockChangeSub(byte[] array, SubtitleEntry entry)
+        private byte[] blockChangeSub(byte[] array, SubtitleEntry entry, int blockno)
         {
             int index = array.Length - 1;
-            bool again = true;
             byte[] output = null;
-            int zerocnt = 0;
 
             // Remove end zeros
             while (index >= 0 && array[index] == 0x00)
             {
                 index--;
-                zerocnt++;
             }
 
             int endidx = index;
             int startidx = findSubsStartIndex(array, endidx);
+            if (startidx == 0)
+                throw new Exception("Error finding sub to replace");
 
-            BinaryWriter bw = null;
-            int sizeDelta = 0;
-            while (again)
+            // Read original subs
+            var origSubs = parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), blockno);
+
+            // Replace new subtitle text
+            foreach (SubtitleEntry newEntry in subEntries)
             {
-                int endpos = index;
-                index--;
+                if (newEntry.blockNumber != blockno)
+                    continue;
 
-                // Find start of subtitle
-                while (index >= 0 && array[index] != 0x0d)
+                foreach (SubtitleEntry origEntry in origSubs)
                 {
-                    index--;
-                }
-
-                int startpos = index + 1;
-                index--;
-
-                // Find start of subtitle lang
-                while ((index >= 0) && (array[index] != 0x0d) && (array[index] != 0x00))
-                {
-                    index--;
-                }
-
-                if (array[index] == 0x00)
-                    again = false;
-
-                int langpos = index + 1;
-                
-                if ((LangID)(int.Parse(Encoding.UTF8.GetString(array, langpos, startpos - langpos - 1))) == entry.lang)
-                {
-                    int len = Encoding.UTF8.GetByteCount(entry.text);
-                    sizeDelta = len - (endpos - startpos);
-                    int outarraysize =  array.Length - zerocnt + sizeDelta;
-                    outarraysize = ((outarraysize + 15) >> 4) << 4;
-                    output = new byte[outarraysize];
-
-                    // Copy data before sub entry
-                    Array.Copy(array, output, startpos);
-                    
-                    Encoding.UTF8.GetBytes(entry.text, 0, entry.text.Length, output, startpos);
-
-                    Array.Copy(array, endpos, output, startpos + len, array.Length - zerocnt - endpos);
-
-                    bw = new BinaryWriter(new MemoryStream(output));
-
-                    // Fix size of mul block header                    
-                    bw.Seek(4, SeekOrigin.Begin);
-                    bw.Write(outarraysize - 16);
-                    
-                    // Fix size of cine block header
-                    bw.Seek(16, SeekOrigin.Begin);
-                    bw.Write(outarraysize - 20);                    
-                }
-
-                if (again == false)
-                {
-                    // Fix size of subs header
-                    var br = new BinaryReader(new MemoryStream(array));
-                    br.BaseStream.Position = index - 3;
-                    var origsize = br.ReadUInt32();
-                    bw.Seek(index - 3, SeekOrigin.Begin);
-                    bw.Write((uint)(origsize + sizeDelta));
-                    bw.Close();
-                    return output;
+                    if (newEntry.lang == origEntry.lang)
+                    {
+                        origEntry.text = newEntry.text;
+                        break;
+                    }
                 }
             }
+
+            // Get the modified subs block
+            var subs = rebuildSubsBlock(origSubs, blockno); //origSubs being the new subs
+
+            // Compute total length
+            int length = startidx + subs.Length;
+            // Align to 16 bytes
+            length = ((length + 15) >> 4) << 4;
+
+            output = new byte[length];
+
+            // Copy data befor subs
+            Array.Copy(array, output, startidx);
+
+            // Copy subs
+            Array.Copy(subs, 0, output, startidx, subs.Length);
+
+            MemoryStream ms = new MemoryStream(output);
+            ms.Position = 4;
+            ms.writeuint((uint)(length - 16), isBE);
+            ms.Position = 16;
+            ms.writeuint((uint)(length - 20), isBE);
 
             return output;
         }
