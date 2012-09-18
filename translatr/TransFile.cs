@@ -41,7 +41,11 @@ namespace translatr
             
             bigPath = root.GetAttribute("bigpath", "");
             patchPath = root.GetAttribute("patchpath", "");
-            isBigEndian = bool.Parse(root.GetAttribute("bigendian", ""));
+            var be = root.GetAttribute("bigendian", "");
+            if (be == string.Empty)
+                isBigEndian = false;
+            else
+                isBigEndian = bool.Parse(be);
 
             var fileNodes = root.Select("file");
 
