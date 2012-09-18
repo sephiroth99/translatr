@@ -222,7 +222,7 @@ namespace translatr
             if (startidx == 0)
                 return; //no subs found
             else
-                subEntries = parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), block);
+                parseSubsBlock(subEntries, Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), block);
         }
 
         int findSubsStartIndex(byte[] array, int endidx)
@@ -246,10 +246,8 @@ namespace translatr
             return index;
         }
 
-        static List<SubtitleEntry> parseSubsBlock(String s, int block)
+        static void parseSubsBlock(List<SubtitleEntry> entries, String s, int block)
         {
-            List<SubtitleEntry> entries = new List<SubtitleEntry>();
-
             var ss = s.Split('\r');
             
             for (int i = 0; i < ss.Length; i += 2)
@@ -261,8 +259,6 @@ namespace translatr
 
                 entries.Add(sub);
             }
-
-            return entries;
         }
 
         byte[] rebuildSubsBlock(List<SubtitleEntry> entries, int blockNumber)
@@ -317,7 +313,8 @@ namespace translatr
                 throw new Exception("Error finding sub to replace");
 
             // Read original subs
-            var origSubs = parseSubsBlock(Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), blockno);
+            List<SubtitleEntry> origSubs = new List<SubtitleEntry>();
+            parseSubsBlock(origSubs, Encoding.UTF8.GetString(array, startidx + 4, endidx - startidx - 4), blockno);
 
             // Replace new subtitle text
             foreach (SubtitleEntry newEntry in subEntries)
@@ -345,12 +342,13 @@ namespace translatr
 
             output = new byte[length];
 
-            // Copy data befor subs
+            // Copy data before subs
             Array.Copy(array, output, startidx);
 
             // Copy subs
             Array.Copy(subs, 0, output, startidx, subs.Length);
 
+            // Adjust lengths
             MemoryStream ms = new MemoryStream(output);
             ms.Position = 4;
             ms.writeuint((uint)(length - 16), isBE);
