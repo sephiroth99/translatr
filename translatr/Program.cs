@@ -253,6 +253,12 @@ namespace translatr
             {
                 dest = outPath + localsFile.name;
                 Directory.CreateDirectory(Path.GetDirectoryName(dest));
+
+                if (localsFile.sourcePath == origBigPathBase)
+                    localsFile.sourcePath = bigPathBase;
+                else if (localsFile.sourcePath == origPatchPathBase)
+                    localsFile.sourcePath = patchPathBase;
+                
                 localsFile.rebuildAndSave(dest);
                 System.Console.WriteLine(dest);
 
@@ -285,16 +291,13 @@ namespace translatr
                     dest = outPath + cinefile.name;
                     Directory.CreateDirectory(Path.GetDirectoryName(dest));
 
+                    // Replace the source path for the override one
+                    // If no override, orig*PathBase will be empty
                     if (cinefile.sourcePath == origBigPathBase)
                         cinefile.sourcePath = bigPathBase;
                     else if (cinefile.sourcePath == origPatchPathBase)
                         cinefile.sourcePath = patchPathBase;
-                    /*else
-                    {
-                        System.Console.WriteLine("Unknown source path of mul file! exiting");
-                        System.Environment.Exit(-2);
-                    }*/
-                    
+
                     cinefile.rebuild(dest);
                     System.Console.WriteLine(dest);
 
