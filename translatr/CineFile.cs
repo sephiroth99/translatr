@@ -273,7 +273,8 @@ namespace translatr
                 if (e.blockNumber != blockNumber)
                     continue;
 
-                br.Write((byte)((byte)e.lang + 0x30));
+                var langNumber = ((int)e.lang).ToString().ToCharArray();
+                br.Write(langNumber, 0, langNumber.Length);
                 br.Write('\r');
                 br.Write(Encoding.UTF8.GetBytes(e.text));
                 br.Write('\r');
