@@ -79,8 +79,11 @@ namespace translatr
             MemoryStream ms = new MemoryStream();
             BinaryWriter w = new BinaryWriter(ms);
 
+            // Get number of zero entries after last entry
+            uint countAfter = (uint)(entries[0].offset/4 - (entries.Count + 3));
+
             ms.Position = 4;
-            uint var = (uint)entries.Count + 1;
+            uint var = (uint)entries.Count + 1 + countAfter;
             w.Write(isBE ? var.swap() : var);
             ms.Position += 4;
 

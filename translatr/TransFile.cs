@@ -95,7 +95,6 @@ namespace translatr
                         
                         // Save text of current entry
                         entryText = entryNodes.Current.Value;
-                        var tata = entryNodes.Current.Value.ToCharArray();
                         prevIndex++;
 
                         // If next entry is not sequential, we need to add empty entries
