@@ -353,8 +353,11 @@ namespace translatr
             MemoryStream ms = new MemoryStream(output);
             ms.Position = 4;
             ms.writeuint((uint)(length - 16), isBE);
-            ms.Position = 16;
-            ms.writeuint((uint)(length - 20), isBE);
+            if (blockno != 0)
+            {
+                ms.Position = 16;
+                ms.writeuint((uint)(length - 20), isBE);
+            }
 
             return output;
         }
