@@ -1,4 +1,4 @@
-translatr version 0.1.1
+translatr version 0.1.2
 
 by sephiroth99
 
@@ -20,10 +20,11 @@ things ;)
 
 
 How to use:
-*Extract mode: translatr extract bigfile_path [patch_path]
+*Extract mode: translatr extract bigfile_path [be] [patch_path]
 
 Arguments:
  bigfile_path: path to folder where bigfile.000 was extracted
+ be          : (optional) write \"be\" to enable big endian extraction"
  patch_path  : (optional) path to folder where patch.000 was extracted
 
 To unpack files from the game, use Gibbed.TombRaider.Unpack from Rick (see
@@ -31,8 +32,10 @@ below).
 If the game has a patch (like TRU and LCGoL), it is recommended to install and
 unpack it, as it will make patching back the modifications easier.
 
-*Patch mode  : translatr apply translations_path
+*Patch mode  : translatr apply translations_path [override_base_path [override_patch_path]]
  translations_path: path to modified translations.xml file
+ override_base_path: (optional) path to extracted base files. Overrides path in xml file.
+ override_patch_path: (opt) path to extracted patch files. Overrides path in xml file.
 
 This will create the new files in a folder named "newpatch". If a patch.000
 archive was specified during extract mode, the patch will be inserted too. You
