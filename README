@@ -1,4 +1,4 @@
-translatr version 0.1.2
+translatr version 0.1.3
 
 by sephiroth99
 
@@ -20,12 +20,28 @@ things ;)
 
 
 How to use:
-*Extract mode: translatr extract bigfile_path [be] [patch_path]
+*Extract mode: translatr extract lang bigfile_path [be] [patch_path]
 
 Arguments:
+ lang        : language ID of in-game language to extract (see table below)
  bigfile_path: path to folder where bigfile.000 was extracted
  be          : (optional) write \"be\" to enable big endian extraction"
  patch_path  : (optional) path to folder where patch.000 was extracted
+
+Language IDs are:
+0 = English
+1 = French
+2 = German
+3 = Italian
+4 = Spanish
+5 = Japanese
+6 = Portugese
+7 = Polish
+8 = EnglishUK
+9 = Russian
+10 = Czech
+11 = Dutch
+12 = Hungarian
 
 To unpack files from the game, use Gibbed.TombRaider.Unpack from Rick (see
 below).
