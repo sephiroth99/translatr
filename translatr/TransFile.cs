@@ -87,8 +87,8 @@ namespace translatr
                         e.index = prevIndex;
                         e.offset = lastOffset;
                         lastOffset += (uint)Encoding.UTF8.GetByteCount(entryText) + 1;
-                        if (lastOffset != offset)
-                            throw new Exception("Error loading locals.bin");
+                        /*if (lastOffset != offset)
+                            throw new Exception("Error loading locals.bin");*/
                         e.text = entryText;
 
                         lf.entries.Add(e);

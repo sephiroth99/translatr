@@ -54,6 +54,12 @@ namespace translatr
                 e.index = i;
                 e.offset = s.readuint(isBE);
 
+                if (e.offset == 0)
+                {
+                    e.text = "";
+                    continue;
+                }
+
                 s.Position = e.offset;
                 
                 byte b;
