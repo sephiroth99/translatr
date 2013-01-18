@@ -14,6 +14,7 @@ namespace translatr
 
     public class LocalsFile
     {
+        public int lang;
         public List<LocalsEntry> entries;
         public String sourcePath;
         public String name;
@@ -41,7 +42,8 @@ namespace translatr
         {
             BinaryReader r = new BinaryReader(s);
 
-            s.Position = 4;
+            lang = (int)s.readuint(isBE);
+            
             uint count = s.readuint(isBE);            
             count -= 1;
 
@@ -88,7 +90,8 @@ namespace translatr
             // Get number of zero entries after last entry
             uint countAfter = (uint)(entries[0].offset/4 - (entries.Count + 3));
 
-            ms.Position = 4;
+            w.Write(this.lang);
+
             uint var = (uint)entries.Count + 1 + countAfter;
             w.Write(isBE ? var.swap() : var);
             ms.Position += 4;

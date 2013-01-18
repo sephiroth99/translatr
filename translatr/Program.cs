@@ -11,25 +11,27 @@ namespace translatr
     {
         static void Main(string[] args)
         {
-            bool    extractMode = true;
-            bool    isBigEndian = false;
-            String  bigfilePath = String.Empty;
-            String  patchPath   = String.Empty;
-            String  transPath   = String.Empty;
-            String  ovrBasePath = String.Empty;
+            bool   extractMode  = true;
+            bool   isBigEndian  = false;
+            int    lang         = 1;
+            String bigfilePath  = String.Empty;
+            String patchPath    = String.Empty;
+            String transPath    = String.Empty;
+            String ovrBasePath  = String.Empty;
             String ovrPatchPath = String.Empty;
 
             Console.WriteLine("");
-            Console.WriteLine("translatr 0.1.2");
+            Console.WriteLine("translatr 0.1.3");
             Console.WriteLine("by sephiroth99");
             Console.WriteLine("");
 
             if (args.Length <= 0 || args[0] == "-h" || args[0] == "-?" || args[0] == "--help")
             {
                 Console.WriteLine("Extract Usage:");
-                Console.WriteLine("translatr extract bigfile_path [be] [patch_path]");
+                Console.WriteLine("translatr extract lang bigfile_path [be] [patch_path]");
                 Console.WriteLine("");
                 Console.WriteLine("Arguments:");
+                Console.WriteLine(" lang        : in-game language to extract");
                 Console.WriteLine(" bigfile_path: path to folder where bigfile.000 was extracted");
                 Console.WriteLine(" be          : (opt) write \"be\" to enable big endian extraction");
                 Console.WriteLine(" patch_path  : (opt) path to folder where patch.000 was extracted");
@@ -64,30 +66,36 @@ namespace translatr
                 }
                 else
                 {
-                    bigfilePath = args[1];
-                    if (args.Length > 2)
-                        if (args[2] == "be")
+                    if (args.Length < 3)
+                    {
+                        Console.WriteLine("Not enough arguments passed to program, run \"translatr -h\" for help");
+                        System.Environment.Exit(0);
+                    }
+                    lang = int.Parse(args[1]);
+                    bigfilePath = args[2];
+                    if (args.Length > 3)
+                        if (args[3] == "be")
                         {
                             isBigEndian = true;
-                            if (args.Length > 3)
-                                patchPath = args[3];
+                            if (args.Length > 4)
+                                patchPath = args[4];
                         }
                         else
-                            patchPath = args[2];
+                            patchPath = args[3];
                 }
             }
 
             if (extractMode)
-                doExtract(bigfilePath, patchPath, isBigEndian);
+                doExtract(bigfilePath, patchPath, isBigEndian, lang);
             else
-                doApply(transPath, ovrBasePath, ovrPatchPath, isBigEndian);
+                doApply(transPath, ovrBasePath, ovrPatchPath);
         }
 
-        private static void doExtract(String bigfilePath, String patchPath, bool isBigEndian)
+        private static void doExtract(String bigfilePath, String patchPath, bool isBigEndian, int lang)
         {
-            TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian);
+            TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian, lang);
 
-            var files = getFilelist(bigfilePath, patchPath);
+            var files = getFilelist(bigfilePath, patchPath, lang);
 
             System.Console.WriteLine("Searching following files for translatable text:");
 
@@ -147,7 +155,7 @@ namespace translatr
 
                         foreach (SubtitleEntry e in entries)
                         {
-                            if (e.lang == LangID.English)
+                            if (e.lang == (LangID)lang)
                             {
                                 tf.AddEntry(e.text, e.lang.ToString(), e.blockNumber.ToString());
                             }
@@ -160,7 +168,7 @@ namespace translatr
             System.Console.WriteLine("Translatable text saved to file \"translations.xml\"");
         }
 
-        private static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath, bool isBigEndian)
+        private static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath)
         {
             LocalsFile localsFile = null;
             List<CineFile> cineFileList = null;
@@ -169,6 +177,7 @@ namespace translatr
             String bigPathBase, origBigPathBase;
             String outPath = "newpatch";
             String dest;
+            int lang;
 
             Directory.CreateDirectory(outPath);
             
@@ -331,15 +340,15 @@ namespace translatr
             System.Console.WriteLine("done!");
         }
 
-        private static List<String> getFilelist(String bigfilePath, String patchPath)
+        private static List<String> getFilelist(String bigfilePath, String patchPath, int lang)
         {
             List<String> patchedfiles = new List<String>();
             if (patchPath != String.Empty)
             {
-                patchedfiles = searchDir(patchPath);
+                patchedfiles = searchDir(patchPath, lang);
             }
 
-            var bigfiles = searchDir(bigfilePath);
+            var bigfiles = searchDir(bigfilePath, lang);
 
             // Replace patched files in main file list
             foreach (string s in patchedfiles)
@@ -352,7 +361,7 @@ namespace translatr
             return bigfiles;
         }
 
-        private static List<String> searchDir(String path)
+        private static List<String> searchDir(String path, int lang)
         {
             List<String> list = new List<String>();
 
@@ -366,7 +375,7 @@ namespace translatr
                 {
                     continue;
                 }
-                else if (getLocale(Int32.Parse(subfolder, System.Globalization.NumberStyles.HexNumber)) != LangID.English)
+                else if (getLocale(Int32.Parse(subfolder, System.Globalization.NumberStyles.HexNumber)) != (LangID)lang)
                 {
                     continue;
                 }

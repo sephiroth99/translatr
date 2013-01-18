@@ -12,7 +12,7 @@ namespace translatr
         private XmlWriter xml;
         private bool isFileEntryOpen;
 
-        public TransFile(String bigpath, String patchpath, bool isBE)
+        public TransFile(String bigpath, String patchpath, bool isBE, int lang)
         {
             var xmlsettings = new XmlWriterSettings();
             xmlsettings.Indent = true;
@@ -24,6 +24,7 @@ namespace translatr
             xml.WriteAttributeString("bigpath", bigpath);
             xml.WriteAttributeString("patchpath", patchpath);
             xml.WriteAttributeString("bigendian", isBE ? "true" : "false");
+            xml.WriteAttributeString("lang", lang.ToString());
 
             isFileEntryOpen = false;
         }
@@ -38,7 +39,8 @@ namespace translatr
             var nav = doc.CreateNavigator();
 
             var root = nav.SelectSingleNode("/root");
-            
+
+            int lang = int.Parse(root.GetAttribute("lang", ""));
             bigPath = root.GetAttribute("bigpath", "");
             patchPath = root.GetAttribute("patchpath", "");
             var be = root.GetAttribute("bigendian", "");
@@ -59,6 +61,8 @@ namespace translatr
                 if(name.EndsWith("locals.bin"))
                 {
                     lf = new LocalsFile(basepath, name, isBigEndian);
+                    lf.lang = lang;
+
                     uint index, offset;
                     String entryText = "";
                     uint prevIndex = 0;
