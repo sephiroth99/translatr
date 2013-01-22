@@ -129,6 +129,10 @@ namespace translatr
                 {
                     dataStream.Position += blockSize;
                 }
+                else if (type == 3) // Skip block
+                {
+                    dataStream.Position += blockSize;
+                }
                 else
                 {
                     throw new Exception("Unknown mul block type");
