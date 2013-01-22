@@ -39,8 +39,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Applicator.cs" />
     <Compile Include="CineFile.cs" />
     <Compile Include="EndianHelper.cs" />
+    <Compile Include="Extractor.cs" />
     <Compile Include="LocalsFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
