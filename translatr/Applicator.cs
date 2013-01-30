@@ -10,8 +10,52 @@ namespace translatr
 {
     class Applicator
     {
-        public static void doApply(String transFilePath, String ovrFileBasePath, String ovrFilePatchPath)
+        private static void showHelpAndQuit()
         {
+            Console.WriteLine("Apply Usage:");
+            Console.WriteLine("translatr apply translations_path [override_base_path [override_patch_path]]");
+            Console.WriteLine("");
+            Console.WriteLine("Arguments:");
+            Console.WriteLine(" translations_path: path to modified translations.xml file");
+            Console.WriteLine(" override_base_path: (opt) path to extracted base files. Overrides path in xml file.");
+            Console.WriteLine(" override_patch_path: (opt) path to extracted patch files. Overrides path in xml file.");
+            System.Environment.Exit(0);
+        }
+
+        public static void doApply(string[] args)
+        {
+            String transFilePath = String.Empty;
+            String ovrFileBasePath = String.Empty;
+            String ovrFilePatchPath = String.Empty;
+
+
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Error! Not enough arguments passed to program.");
+                Console.WriteLine("");
+                showHelpAndQuit();
+            }
+            else
+            {
+                if (args[1] == "help")
+                {
+                    showHelpAndQuit();
+                }
+                else if (args.Length > 4)
+                {
+                    Console.WriteLine("Error! Too many arguments passed to program.");
+                    Console.WriteLine("");
+                    showHelpAndQuit();
+                }
+
+                transFilePath = args[1];
+
+                if (args.Length > 2)
+                    ovrFileBasePath = args[2];
+                if (args.Length > 3)
+                    ovrFilePatchPath = args[3];
+            }
+
             LocalsFile localsFile = null;
             List<CineFile> cineFileList = null;
 

@@ -8,9 +8,82 @@ namespace translatr
 {
     class Extractor
     {
-        public static void doExtract(String bigfilePath, String patchPath, bool isBigEndian, int lang)
+        private static void showHelpAndQuit()
         {
-            TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian, lang);
+            Console.WriteLine("Extract Usage:");
+            Console.WriteLine("translatr extract lang bigfile_path [be] [patch_path]");
+            Console.WriteLine("");
+            Console.WriteLine("Arguments:");
+            Console.WriteLine(" lang        : language ID of in-game language to extract");
+            Console.WriteLine(" bigfile_path: path to folder where bigfile.000 was extracted");
+            Console.WriteLine(" be          : (opt) write \"be\" to enable big endian extraction");
+            Console.WriteLine(" patch_path  : (opt) path to folder where patch.000 was extracted");
+            Console.WriteLine("");
+            Console.WriteLine("Possible language IDs:");
+            Console.WriteLine("0 = English");
+            Console.WriteLine("1 = French");
+            Console.WriteLine("2 = German");
+            Console.WriteLine("3 = Italian");
+            Console.WriteLine("4 = Spanish");
+            Console.WriteLine("5 = Japanese");
+            Console.WriteLine("6 = Portugese");
+            Console.WriteLine("7 = Polish");
+            Console.WriteLine("8 = EnglishUK");
+            Console.WriteLine("9 = Russian");
+            Console.WriteLine("10 = Czech");
+            Console.WriteLine("11 = Dutch");
+            Console.WriteLine("12 = Hungarian");
+            System.Environment.Exit(0);
+        }
+
+        public static void doExtract(string[] args)
+        {
+            bool isBigEndian = false;
+            int lang = 1;
+            String bigfilePath = String.Empty;
+            String patchPath = String.Empty;
+
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Error! Not enough arguments passed to program.");
+                Console.WriteLine("");
+                showHelpAndQuit();
+            }
+            else
+            {
+                if (args[1] == "help")
+                {
+                    showHelpAndQuit();
+                }
+                else if (args.Length < 3)
+                {
+                    Console.WriteLine("Error! Not enough arguments passed to program.");
+                    Console.WriteLine("");
+                    showHelpAndQuit();
+                }
+                else if (args.Length > 5)
+                {
+                    Console.WriteLine("Error! Too many arguments passed to program.");
+                    Console.WriteLine("");
+                    showHelpAndQuit();
+                }
+                else
+                {
+                    lang = int.Parse(args[1]);
+                    bigfilePath = args[2];
+                    if (args.Length > 3)
+                        if (args[3] == "be")
+                        {
+                            isBigEndian = true;
+                            if (args.Length > 4)
+                                patchPath = args[4];
+                        }
+                        else
+                            patchPath = args[3];
+                }
+            }
+
+            TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian);
 
             var files = getFilelist(bigfilePath, patchPath, lang);
 
