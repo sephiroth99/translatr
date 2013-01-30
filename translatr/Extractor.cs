@@ -83,6 +83,35 @@ namespace translatr
                 }
             }
 
+            // Get locale mask
+            uint mask;
+            if (patchPath != "")
+            {
+                uint mask2 = Locale.getLocaleMask(bigfilePath);
+                mask = Locale.getLocaleMask(patchPath);
+
+                if (mask2 != mask)
+                    throw new Exception("Patch and bigfile locale mask different");
+            }
+            else
+                mask = Locale.getLocaleMask(bigfilePath);
+
+            //Check if lang is present in files
+            if ((mask & (1 << lang)) == 0)
+            {
+                Console.WriteLine("");
+                Console.WriteLine(String.Format("Error! Language {0} not found in game files.", Locale.toString((LocaleID)lang)));
+                Console.WriteLine("");
+                Console.WriteLine("Detected languages:");
+
+                for (int i = 0; i < 16; i++)
+                {
+                    if((mask & (1 << i)) != 0)
+                        Console.WriteLine(Locale.toString((LocaleID)i));
+                }
+                System.Environment.Exit(0);
+            }
+            
             TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian);
 
             var files = getFilelist(bigfilePath, patchPath, lang);
