@@ -6,28 +6,10 @@ using System.Text;
 
 namespace translatr
 {
-    public enum LangID
-    {
-        Default = -1,
-        English = 0,
-        French,
-        German,
-        Italian,
-        Spanish,
-        Japanese,
-        Portugese,
-        Polish,
-        EnglishUK,
-        Russian,
-        Czech,
-        Dutch,
-        Hungarian
-    };
-
     public class SubtitleEntry
     {
         public int blockNumber;
-        public LangID lang;
+        public LocaleID lang;
         public string text;
     }
 
@@ -258,7 +240,7 @@ namespace translatr
             {
                 SubtitleEntry sub = new SubtitleEntry();
                 sub.blockNumber = block;
-                sub.lang = (LangID)(int.Parse(ss[i]));
+                sub.lang = (LocaleID)(int.Parse(ss[i]));
                 sub.text = ss[i + 1];
 
                 entries.Add(sub);

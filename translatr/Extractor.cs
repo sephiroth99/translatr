@@ -72,7 +72,7 @@ namespace translatr
 
                         foreach (SubtitleEntry e in entries)
                         {
-                            if (e.lang == (LangID)lang)
+                            if (e.lang == (LocaleID)lang)
                             {
                                 tf.AddEntry(e.text, e.lang.ToString(), e.blockNumber.ToString());
                             }
@@ -159,31 +159,17 @@ namespace translatr
             return list;
         }
 
-        /*private static LangID getLocale(Int32 code)
-        {
-            if (code == (Int32)LangID.Default)
-            {
-                return LangID.Default;
-            }
-
-            int i = 0;
-            while ((code & (Int32)(1 << i)) == 0)
-                i++;
-
-            return (LangID)i;
-        }*/
-
         private static int getLocaleMask(int lang)
         {
-            LangID l = (LangID)lang;
+            LocaleID l = (LocaleID)lang;
 
-            if (l == LangID.Russian)
+            if (l == LocaleID.Russian)
                 return 0x0200;
-            else if (l == LangID.Japanese)
+            else if (l == LocaleID.Japanese)
                 return 0x0020;
-            else if (l == LangID.Polish || l == LangID.Czech || l == LangID.Hungarian)
+            else if (l == LocaleID.Polish || l == LocaleID.Czech || l == LocaleID.Hungarian)
                 return 0x1480;
-            else if (l == LangID.English || l == LangID.French || l == LangID.Italian || l == LangID.German || l == LangID.Spanish || l == LangID.Dutch)
+            else if (l == LocaleID.English || l == LocaleID.French || l == LocaleID.Italian || l == LocaleID.German || l == LocaleID.Spanish || l == LocaleID.Dutch)
                 return 0x081F;
             else
                 return 0;

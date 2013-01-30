@@ -200,66 +200,12 @@ namespace translatr
             }            
         }
 
-        private static LangID getLangIDfromString(String s)
         {
-            LangID id = LangID.Default;
-
-            switch (s)
             {
-                case "English":
-                    id = LangID.English;
-                    break;
 
-                case "French":
-                    id = LangID.French;
-                    break;
 
-                case "German":
-                    id = LangID.German;
-                    break;
-
-                case "Italian":
-                    id = LangID.Italian;
-                    break;
-
-                case "Spanish":
-                    id = LangID.Spanish;
-                    break;
-
-                case "Japanese":
-                    id = LangID.Japanese;
-                    break;
-
-                case "Portugese":
-                    id = LangID.Portugese;
-                    break;
-
-                case "Polish":
-                    id = LangID.Polish;
-                    break;
-
-                case "EnglishUK":
-                    id = LangID.EnglishUK;
-                    break;
-
-                case "Russian":
-                    id = LangID.Russian;
-                    break;
-
-                case "Czech":
-                    id = LangID.Czech;
-                    break;
-
-                case "Dutch":
-                    id = LangID.Dutch;
-                    break;
-
-                case "Hungarian":
-                    id = LangID.Hungarian;
-                    break;
             }
 
-            return id;
         }
     }
 }
