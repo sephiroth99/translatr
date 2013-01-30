@@ -38,14 +38,8 @@ namespace translatr
                         basep = patchPath;
                         name = file.Substring(patchPath.Length);
                     }
-                    tf.AddFile(basep, name);
 
-                    foreach (LocalsEntry e in lf.entries)
-                    {
-                        // Watch out not the same info as the attribute name!
-                        if (e.text != string.Empty)
-                            tf.AddEntry(e.text, e.index.ToString(), e.offset.ToString());
-                    }
+                    tf.AddLocalsFile(lf, basep, name);
                 }
                 else
                 {
