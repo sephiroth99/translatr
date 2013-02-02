@@ -96,8 +96,23 @@ namespace translatr
             else
                 mask = Locale.getLocaleMask(bigfilePath);
 
+            if (mask == uint.MaxValue)
+            {
+                throw new Exception("Error finding localisation database (\"locals.bin\"). Make sure the game files are properly unpacked.");
+            }
+            else if (mask == (uint.MaxValue - 1))
+            {
+                Console.WriteLine("");
+                Console.WriteLine("Only one localisation database (\"locals.bin\") found.");
+                Console.WriteLine(String.Format("Is {0} is the language you want to extract? (y/n)", Locale.toString((LocaleID)lang)));
+                var key = Console.ReadKey(false);
+                var yes = new ConsoleKeyInfo('y', ConsoleKey.Y, false, false, false);
+                if(key != yes)
+                    System.Environment.Exit(0);
+                Console.WriteLine("");
+            }
             //Check if lang is present in files
-            if ((mask & (1 << lang)) == 0)
+            else if ((mask & (1 << lang)) == 0)
             {
                 Console.WriteLine("");
                 Console.WriteLine(String.Format("Error! Language {0} not found in game files.", Locale.toString((LocaleID)lang)));

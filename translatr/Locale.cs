@@ -46,9 +46,22 @@ namespace translatr
                         mask &= uint.Parse(locale, System.Globalization.NumberStyles.HexNumber);
                     }
                 }
+                mask = ~mask;
+            }
+            else if (dirs.Length == 1)
+            {
+                var locale = dirs[0].Substring(dir.Length + 1, 8);
+                if (locale == "default")
+                    mask = uint.MaxValue - 1;
+                else
+                    mask = uint.MaxValue;
+            }
+            else
+            {
+                mask = uint.MaxValue;
             }
 
-            return ~mask;
+            return mask;
         }
 
         public static string toString(LocaleID id)
