@@ -36,7 +36,7 @@ namespace translatr
                 {
                     var locale = d.Substring(dir.Length + 1, 8);
 
-                    if (locale == "default")
+                    if (locale == "default\\")
                     {
                         // We shouldnt have default!
                         throw new NotSupportedException();
@@ -51,7 +51,7 @@ namespace translatr
             else if (dirs.Length == 1)
             {
                 var locale = dirs[0].Substring(dir.Length + 1, 8);
-                if (locale == "default")
+                if (locale == "default\\")
                     mask = uint.MaxValue - 1;
                 else
                     mask = uint.MaxValue;
