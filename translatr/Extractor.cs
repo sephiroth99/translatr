@@ -103,12 +103,22 @@ namespace translatr
             else if (mask == (uint.MaxValue - 1))
             {
                 Console.WriteLine("");
-                Console.WriteLine("Only one localisation database (\"locals.bin\") found.");
-                Console.WriteLine(String.Format("Is {0} is the language you want to extract? (y/n)", Locale.toString((LocaleID)lang)));
-                var key = Console.ReadKey(false);
+                Console.WriteLine("One localisation database (\"locals.bin\") found, but unable to determine its language.");
+                Console.WriteLine(String.Format("Please confirm that the language {0} is supported by your game.", Locale.toString((LocaleID)lang)));
+                Console.WriteLine("NOTE: If the language is not supported by the game, you won't see any changes!");
+                Console.Write("Confirm? (y/n)");
+                
                 var yes = new ConsoleKeyInfo('y', ConsoleKey.Y, false, false, false);
-                if(key != yes)
-                    System.Environment.Exit(0);
+                var no = new ConsoleKeyInfo('n', ConsoleKey.N, false, false, false);
+                while (true)
+                {
+                    var key = Console.ReadKey(true);
+                    if (key == no)
+                        System.Environment.Exit(0);
+                    else if (key == yes)
+                        break;
+                }
+                
                 Console.WriteLine("");
             }
             //Check if lang is present in files
