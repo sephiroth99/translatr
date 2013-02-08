@@ -111,7 +111,11 @@ namespace translatr
                 {
                     dataStream.Position += blockSize;
                 }
-                else if (type == 3) // Skip block
+                else if (type == 2) // Unknown block (TRL, TRA), skip
+                {
+                    dataStream.Position += blockSize;
+                }
+                else if (type == 3) // Unknown block (LCGoL), skip
                 {
                     dataStream.Position += blockSize;
                 }
