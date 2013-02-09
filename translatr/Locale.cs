@@ -30,9 +30,6 @@ namespace translatr
             // Get all directories containing locals.bin
             var dirs = Directory.GetFiles(dir, "locals.bin", SearchOption.AllDirectories);
 
-            if (dir.EndsWith("\\"))
-                dir = dir.Remove(dir.Length - 1);
-
             if (dirs.Length > 1)
             {
                 foreach (string d in dirs)

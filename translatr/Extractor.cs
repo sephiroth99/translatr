@@ -83,6 +83,13 @@ namespace translatr
                 }
             }
 
+            // Remove trailing backslash on paths
+            if (bigfilePath.EndsWith("\\"))
+                bigfilePath = bigfilePath.Remove(bigfilePath.Length - 1);
+
+            if (patchPath.EndsWith("\\"))
+                patchPath = patchPath.Remove(patchPath.Length - 1);
+
             // Get locale mask
             uint mask;
             if (patchPath != "")
