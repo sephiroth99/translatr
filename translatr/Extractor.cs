@@ -19,27 +19,17 @@ namespace translatr
             Console.WriteLine(" be          : (opt) write \"be\" to enable big endian extraction");
             Console.WriteLine(" patch_path  : (opt) path to folder where patch.000 was extracted");
             Console.WriteLine("");
-            Console.WriteLine("Possible language IDs:");
-            Console.WriteLine("0 = English");
-            Console.WriteLine("1 = French");
-            Console.WriteLine("2 = German");
-            Console.WriteLine("3 = Italian");
-            Console.WriteLine("4 = Spanish");
-            Console.WriteLine("5 = Japanese");
-            Console.WriteLine("6 = Portugese");
-            Console.WriteLine("7 = Polish");
-            Console.WriteLine("8 = EnglishUK");
-            Console.WriteLine("9 = Russian");
-            Console.WriteLine("10 = Czech");
-            Console.WriteLine("11 = Dutch");
-            Console.WriteLine("12 = Hungarian");
+            Console.WriteLine("Possible languages:");
+            Console.WriteLine("English (en), French (fr), German (de), Italian (it), Spanish (es),");
+            Console.WriteLine("Japanese (ja), Portugese (pt), Polish (pl), EnglishUK (uk), Russian (ru),");
+            Console.WriteLine("Czech (cs), Dutch (nl), Hungarian (hu)");
             System.Environment.Exit(0);
         }
 
         public static void doExtract(string[] args)
         {
             bool isBigEndian = false;
-            int lang = 1;
+            LocaleID lang = LocaleID.Default;
             String bigfilePath = String.Empty;
             String patchPath = String.Empty;
 
@@ -69,7 +59,14 @@ namespace translatr
                 }
                 else
                 {
-                    lang = int.Parse(args[1]);
+                    lang = Locale.getFromString(args[1]);
+                    if (lang == LocaleID.Default)
+                    {
+                        Console.WriteLine("Error! Unknown language {0}", args[1]);
+                        Console.WriteLine("");
+                        showHelpAndQuit();
+                    }
+
                     bigfilePath = args[2];
                     if (args.Length > 3)
                         if (args[3] == "be")
@@ -110,8 +107,8 @@ namespace translatr
             else if (mask == (uint.MaxValue - 1))
             {
                 Console.WriteLine("");
-                Console.WriteLine("One localisation database (\"locals.bin\") found, but unable to determine its language.");
-                Console.WriteLine(String.Format("Please confirm that the language {0} is supported by your game.", Locale.toString((LocaleID)lang)));
+                Console.WriteLine("Unable to determine language of game files.");
+                Console.WriteLine("Please confirm that the language {0} is supported by your game.", Locale.toString(lang));
                 Console.WriteLine("NOTE: If the language is not supported by the game, you won't see any changes!");
                 Console.Write("Confirm? (y/n)");
                 
@@ -129,10 +126,10 @@ namespace translatr
                 Console.WriteLine("");
             }
             //Check if lang is present in files
-            else if ((mask & (1 << lang)) == 0)
+            else if ((mask & (1 << (int)lang)) == 0)
             {
                 Console.WriteLine("");
-                Console.WriteLine(String.Format("Error! Language {0} not found in game files.", Locale.toString((LocaleID)lang)));
+                Console.WriteLine("Error! Language {0} not found in game files.", Locale.toString(lang));
                 Console.WriteLine("");
                 Console.WriteLine("Detected languages:");
 
@@ -146,7 +143,7 @@ namespace translatr
             
             TransFile tf = new TransFile(bigfilePath, patchPath, isBigEndian);
 
-            var files = getFilelist(bigfilePath, patchPath, lang, mask);
+            var files = getFilelist(bigfilePath, patchPath, (int)lang, mask);
 
             System.Console.WriteLine("Searching following files for translatable text:");
 
@@ -200,7 +197,7 @@ namespace translatr
 
                         foreach (SubtitleEntry e in entries)
                         {
-                            if (e.lang == (LocaleID)lang)
+                            if (e.lang == lang)
                             {
                                 tf.AddEntry(e.text, e.lang.ToString(), e.blockNumber.ToString());
                             }

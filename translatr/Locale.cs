@@ -127,57 +127,72 @@ namespace translatr
         {
             LocaleID id = LocaleID.Default;
 
+            s = s.ToLower();
+
             switch (s)
             {
-                case "English":
+                case "english":
+                case "en":
                     id = LocaleID.English;
                     break;
 
-                case "French":
+                case "french":
+                case "fr":
                     id = LocaleID.French;
                     break;
 
-                case "German":
+                case "german":
+                case "de":
                     id = LocaleID.German;
                     break;
 
-                case "Italian":
+                case "italian":
+                case "it":
                     id = LocaleID.Italian;
                     break;
 
-                case "Spanish":
+                case "spanish":
+                case "es":
                     id = LocaleID.Spanish;
                     break;
 
-                case "Japanese":
+                case "japanese":
+                case "ja":
                     id = LocaleID.Japanese;
                     break;
 
-                case "Portugese":
+                case "portugese":
+                case "pt":
                     id = LocaleID.Portugese;
                     break;
 
-                case "Polish":
+                case "polish":
+                case "pl":
                     id = LocaleID.Polish;
                     break;
 
-                case "EnglishUK":
+                case "englishUK":
+                case "uk":
                     id = LocaleID.EnglishUK;
                     break;
 
-                case "Russian":
+                case "russian":
+                case "ru":
                     id = LocaleID.Russian;
                     break;
 
-                case "Czech":
+                case "czech":
+                case "cs":
                     id = LocaleID.Czech;
                     break;
 
-                case "Dutch":
+                case "dutch":
+                case "nl":
                     id = LocaleID.Dutch;
                     break;
 
-                case "Hungarian":
+                case "hungarian":
+                case "hu":
                     id = LocaleID.Hungarian;
                     break;
             }
