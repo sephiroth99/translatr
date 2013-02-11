@@ -1,3 +1,10 @@
+* Version 0.2.0 (2013-02-10)
+	- New command line syntax.
+	- In extract mode, language is selected by name or 2 character code instead of a number.
+	- Program now checks for supported language in game files and quits if the selected language is not found.
+	- Fix crash bug with TRL/TRA files.
+	- Fix bug in extract mode when path has a trailing backslash.
+
 * Version 0.1.3 (2013-01-17)
 	- Added support for user to choose which language to extract.
 

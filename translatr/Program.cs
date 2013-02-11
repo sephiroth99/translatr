@@ -22,7 +22,7 @@ namespace translatr
         static void Main(string[] args)
         {
             Console.WriteLine("");
-            Console.WriteLine("translatr 0.1.4");
+            Console.WriteLine("translatr 0.2.0");
             Console.WriteLine("by sephiroth99");
             Console.WriteLine("");
 

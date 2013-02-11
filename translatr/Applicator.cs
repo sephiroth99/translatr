@@ -28,7 +28,6 @@ namespace translatr
             String ovrFileBasePath = String.Empty;
             String ovrFilePatchPath = String.Empty;
 
-
             if (args.Length < 2)
             {
                 Console.WriteLine("Error! Not enough arguments passed to program.");
