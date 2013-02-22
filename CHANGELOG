@@ -1,3 +1,6 @@
+* Version 0.2.1 (2013-02-22)
+	- Fix bugs in creation of bigfile.xml (apply mode)
+
 * Version 0.2.0 (2013-02-10)
 	- New command line syntax.
 	- In extract mode, language is selected by name or 2 character code instead of a number.
