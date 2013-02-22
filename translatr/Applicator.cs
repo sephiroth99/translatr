@@ -157,22 +157,8 @@ namespace translatr
 
                 if (localsFile.sourcePath.StartsWith(bigPathBase))
                 {
-                    // Create new entry node
-                    XmlNode n = xdoc.CreateNode(XmlNodeType.Element, "entry", null);
-                    n.InnerText = localsFile.name.Substring(1);
-
-                    // Add hash attribute
-                    var hashXmlAttr = xdoc.CreateAttribute("hash");
-                    hashXmlAttr.InnerText = hasher(Encoding.ASCII.GetBytes(localsFile.name.Substring(10).ToCharArray())).ToString("X").ToUpper();
-                    n.Attributes.Append(hashXmlAttr);
-
-                    // Add locale attribute
-                    var localeXmlAttr = xdoc.CreateAttribute("locale");
-                    localeXmlAttr.InnerText = localsFile.name.Substring(1, 8);
-                    n.Attributes.Append(localeXmlAttr);
-
                     // Add node in file
-                    xdoc.DocumentElement.AppendChild(n);
+                    xdoc.DocumentElement.AppendChild(createNode(xdoc, localsFile.name));
                 }
             }
 
@@ -196,22 +182,8 @@ namespace translatr
 
                     if (cinefile.sourcePath.StartsWith(bigPathBase))
                     {
-                        // Create new entry node
-                        XmlNode n = xdoc.CreateNode(XmlNodeType.Element, "entry", null);
-                        n.InnerText = cinefile.name.Substring(1);
-
-                        // Add hash attribute
-                        var hashXmlAttr = xdoc.CreateAttribute("hash");
-                        hashXmlAttr.InnerText = hasher(Encoding.ASCII.GetBytes(cinefile.name.Substring(10).ToCharArray())).ToString("X").ToUpper();
-                        n.Attributes.Append(hashXmlAttr);
-
-                        // Add locale attribute
-                        var localeXmlAttr = xdoc.CreateAttribute("locale");
-                        localeXmlAttr.InnerText = cinefile.name.Substring(1, 8);
-                        n.Attributes.Append(localeXmlAttr);
-
                         // Add node in file
-                        xdoc.DocumentElement.AppendChild(n);
+                        xdoc.DocumentElement.AppendChild(createNode(xdoc, cinefile.name));
                     }
                 }
             }
@@ -223,7 +195,49 @@ namespace translatr
             xdoc.Save(outPath + "\\bigfile.xml");
             System.Console.WriteLine("done!");
         }
-        
+
+        private static XmlNode createNode(XmlDocument xdoc, string name)
+        {
+            char[] separator = new char[1];
+            separator[0] = '\\';
+            var separatedPath = name.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+
+            // Create new entry node
+            XmlNode n = xdoc.CreateNode(XmlNodeType.Element, "entry", null);
+            if (name.StartsWith("\\"))
+                n.InnerText = name.Substring(1);
+            else
+                n.InnerText = name;
+
+            // Add hash attribute
+            var hashXmlAttr = xdoc.CreateAttribute("hash");
+            if (separatedPath[1] == "__UNKNOWN")
+                hashXmlAttr.InnerText = Path.GetFileNameWithoutExtension(separatedPath[separatedPath.Length - 1]);
+            else
+            {
+                int startOffset = separatedPath[0].Length + 1;
+
+                // This is assuming that there will be no files which the longFileName start with \
+                // even though they exist. They shouldn't contain subs or text so we are ok.
+                if (name.StartsWith("\\"))
+                    startOffset++;
+
+                var longFileName = Encoding.ASCII.GetBytes(name.Substring(startOffset));
+                hashXmlAttr.InnerText = hasher(longFileName).ToString("X8").ToUpper();
+            }
+            n.Attributes.Append(hashXmlAttr);
+
+            // Add locale attribute
+            var localeXmlAttr = xdoc.CreateAttribute("locale");
+            if (separatedPath[0] == "default")
+                localeXmlAttr.InnerText = "FFFFFFFF";
+            else
+                localeXmlAttr.InnerText = separatedPath[0];
+            n.Attributes.Append(localeXmlAttr);
+
+            return n;
+        }
+
         private static Int32 hasher(byte[] s)
         {
             Int32 hash = -1;
